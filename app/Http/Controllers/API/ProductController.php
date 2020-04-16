@@ -58,7 +58,7 @@ class ProductController extends Controller
     {
         $product=Product::find($id);
         if($product){
-            return $this->apiResponse($product,null,200,"Found product");
+            return $this->apiResponse($product,null,200,"Product Found");
         }
         return $this->apiResponse(null,null,404,'Product not found');
     }

@@ -38,7 +38,7 @@ class CategoryController extends Controller
     {
         $category=Category::find($id);
         if($category){
-            return $this->apiResponse($category,null,200,"Found Category");
+            return $this->apiResponse($category,null,200,"Category Found");
         }
         return $this->apiResponse(null,null,404,'Category not found');
     }
@@ -58,9 +58,9 @@ class CategoryController extends Controller
                 foreach($products[0]['products'] as $iteration => $product){
                     $data[$iteration] = ['name' => $product->name,'price'=>$product->price,'image'=>$product->image];
                 }
-                return $this->apiResponse($data,null,200,"Found products");
+                return $this->apiResponse($data,null,200,"Listing successfully");
             }
         }
-        return $this->apiResponse(null,null,404,'no products');
+        return $this->apiResponse(null,null,404,'No found products');
     }
 }
