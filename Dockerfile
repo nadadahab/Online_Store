@@ -24,10 +24,11 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN docker-php-ext-install pdo mbstring
 
 WORKDIR ${APP_USER_HOME_DIR}
+
+COPY . /home
 RUN mkdir -p storage/framework/{sessions,views,cache}
 RUN chmod -R 777 storage/framework
 RUN chown -R www-data:www-data storage/framework
-COPY . /home
 
 RUN composer install
 
