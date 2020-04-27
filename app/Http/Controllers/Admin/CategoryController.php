@@ -107,7 +107,7 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        if($category->can_be_deleted()){
+        if(! $category->can_be_deleted()){
             return redirect()->route('categories.index')
             ->with('warning','Can not delete this Category');
         }else{
