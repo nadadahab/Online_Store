@@ -5,6 +5,7 @@ ENV APP_USER_NAME		online_store
 ENV APP_USER_ID			1000
 ENV APP_USER_HOME_DIR		/home
 
+RUN groupadd -g ${APP_USER_ID} ${APP_USER_HOME_DIR}
 RUN useradd -md ${APP_USER_HOME_DIR} -u ${APP_USER_ID} -s /bin/bash ${APP_USER_NAME} 
 
 RUN apt-get update -y && apt-get install -y\
@@ -26,9 +27,11 @@ RUN docker-php-ext-install pdo mbstring
 WORKDIR ${APP_USER_HOME_DIR}
 
 COPY . /home
+
 RUN mkdir -p storage/framework/{sessions,views,cache}
 RUN chmod -R 777 storage/framework
 RUN chown -R www-data:www-data storage/framework
+
 
 RUN composer install
 
