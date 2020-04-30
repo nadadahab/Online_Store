@@ -1,42 +1,32 @@
-# Base image
+#Base image for the container
 FROM php:7.2-apache
+#Install GIT, GnuPG, NodeJS and NPM
+RUN apt-get update && apt-get install -y git gnupg && \
+    curl -sL https://deb.nodesource.com/setup_10.x | bash - && \
+    apt-get install -y nodejs
 
-ENV APP_USER_NAME		online_store
-ENV APP_USER_ID			1000
-ENV APP_USER_HOME_DIR		/home
+#Add Laravel necessary php extensions
+RUN apt-get install -y \
+    unzip \
+    vim \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-install -j$(nproc) zip mysqli pdo_mysql \
+    && docker-php-ext-configure gd --with-freetype-dir=/usr/include/--with-jpeg-dir=/usr/include/ \
+    && docker-php-ext-install -j$(nproc) gd
+# Create working directory
+RUN mkdir -p /var/www/myapp
+ENV APACHE_DOCUMENT_ROOT /var/www/myapp/public
+ENV APP_NAME "myapp"
+# Install composer from image. You may change it to the latest
+COPY --from=composer:1.5 /usr/bin/composer /usr/bin/composer
+WORKDIR /var/www/myapp
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Make laravel feel comfortable with mod-rewrite
+RUN a2enmod rewrite && service apache2 restart
+COPY setup.sh setup.sh
+RUN chmod +x setup.sh 
 
-RUN groupadd -g ${APP_USER_ID} ${APP_USER_HOME_DIR}
-RUN useradd -md ${APP_USER_HOME_DIR} -u ${APP_USER_ID} -s /bin/bash ${APP_USER_NAME} 
-
-RUN apt-get update -y && apt-get install -y\
-  openssl zip unzip git \
-  libicu-dev \
-  && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
-  && docker-php-ext-configure intl \
-  && docker-php-ext-install \
-  pdo_mysql \
-  && rm -rf /tmp/* \
-  && rm -rf /var/list/apt/* \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get clean
-
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-RUN docker-php-ext-install pdo mbstring
-
-WORKDIR ${APP_USER_HOME_DIR}
-
-COPY . /home
-
-RUN mkdir -p storage/framework/{sessions,views,cache}
-RUN chmod -R 777 storage/framework
-RUN chown -R www-data:www-data storage/framework
-
-
-RUN composer install
-
-CMD php artisan migrate --seed
-
-CMD php artisan serve --host=0.0.0.0 --port=8000
-
-EXPOSE 8000
+CMD php artisan key:generate
